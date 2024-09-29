@@ -1,6 +1,4 @@
 `include "./include/riscv64/common.vh"
-`include "../include/color.vh"
-`include "./Logger.v"
 
 module Assert;
     Logger lg();

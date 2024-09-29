@@ -1,5 +1,4 @@
 `include "./include/riscv64/common.vh"
-`include "./utils/color.vh"
 
 module Logger;
     integer logfile=0;
