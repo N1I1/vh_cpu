@@ -1,13 +1,15 @@
-`include "./include/riscv64/common.vh"
+`include "../include/riscv64/common.vh"
 
 module Assert;
     Logger lg();
 
-    task assert_log(input bit condition, input string msg);
+    task assert_color(input bit condition, input string msg);
         if (!condition) begin
-            string msg = $sformatf("Assertion failed: %s", `ANSI_FMT(msg, `ANSI_FB_RED));
-            lg.log(msg);
-            $display("Assertion failed: %s", msg);
-            $finish;
+            string formatted_msg;
+            formatted_msg = `ANSI_FMT(msg, `ANSI_BG_RED);
+            $display(formatted_msg);
+            // lg.write_log(formatted_msg);
         end
+    endtask
+
 endmodule

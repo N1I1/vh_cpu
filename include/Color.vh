@@ -18,4 +18,4 @@
 `define ANSI_BG_WHITE   "\33[1;47m"
 `define ANSI_NONE       "\33[0m"
 
-`define ANSI_FMT(str, fmt) {fmt , str + "",`ANSI_NONE} // 很奇怪，如果不加上""，则会显示不转换颜色的原字符串，全部使用 + 连接 会乱码
+`define ANSI_FMT(str, fmt) $sformatf("%s%s%s", fmt, str, `ANSI_NONE)
