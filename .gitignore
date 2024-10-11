@@ -3,3 +3,5 @@ log.txt
 *.vcd
 *.vpi
 *.o
+notes/*
+*.hex
