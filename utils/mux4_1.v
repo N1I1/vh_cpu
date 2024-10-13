@@ -6,7 +6,7 @@ module mux4_1(
     input   wire    [`ARCH_WIDTH-1:0]  b,
     input   wire    [`ARCH_WIDTH-1:0]  c,
     input   wire    [`ARCH_WIDTH-1:0]  d,
-    output  wire    [`ARCH_WIDTH-1:0]  out
+    output  reg     [`ARCH_WIDTH-1:0]  out
 );
 
 

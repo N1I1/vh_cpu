@@ -1,7 +1,7 @@
-log.txt
 *.vvp
 *.vcd
 *.vpi
-*.o
 notes/*
-*.hex
+*_tb.v
+tests/build/
+assets/
