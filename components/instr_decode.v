@@ -36,7 +36,7 @@ module instr_decode (
     assign rd       = ins[11:7];
     assign csr_addr = ins[31:20];
     
-    assign I_type = (ins[6:0] == `OP_I_JALR) | (ins[6:0] == `OP_I_LOAD) | (ins[6:0] == `OP_I_IMM);
+    assign I_type = (ins[6:0] == `OP_I_JALR) | (ins[6:0] == `OP_I_LOAD) | (ins[6:0] == `OP_I_IMM) | (ins[6:0] == `OP_I_IMM32);
     assign U_type = (ins[6:0] == `OP_U_LUI) | (ins[6:0] == `OP_U_AUIPC);
     assign J_type = (ins[6:0] == `OP_I_JAL);
     assign B_type = (ins[6:0] == `OP_B);

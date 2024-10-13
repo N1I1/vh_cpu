@@ -4,8 +4,8 @@ import re
 registers = {f'x{i}': '0x0000000000000000' for i in range(32)}
 
 # 设置跳过的指令数和需要删除的最后无效指令数
-skip_initial = 1   # 假设要跳过前5条指令
-skip_final = 0     # 假设要删除最后4条无效指令
+skip_initial = 1
+skip_final = 0
 executed_lines = []  # 存储有效的日志行
 
 def process_log_line(line):

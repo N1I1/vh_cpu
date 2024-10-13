@@ -1,5 +1,7 @@
 `define OP_R        7'b0110011 // R-type
+`define OP_R32      7'b0111011 // R-type 32-bit
 `define OP_I_IMM    7'b0010011 // I-type
+`define OP_I_IMM32  7'b0011011 // I-type 32-bit
 `define OP_I_LOAD   7'b0000011 // I-type Load
 `define OP_S        7'b0100011 // S-type Store
 `define OP_B        7'b1100011 // B-type

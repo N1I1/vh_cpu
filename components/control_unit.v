@@ -91,6 +91,59 @@ module control_unit (
                 endcase
             end
             
+            `OP_R32: begin
+                mem_read    = 1'b0;
+                mem_write   = 1'b0;
+                reg_write   = 1'b1;
+                mem_to_reg  = 2'b0;
+                alu_a_src   = 2'b00;
+                alu_b_src   = 2'b00;
+                pc_src      = 3'b000;
+                data_width  = 3'b10;
+                case (funct3)
+                    `FUNCT3_ADD_SUB: begin
+                        case (funct7)
+                            `FUNCT7_ADD: begin
+                                alu_op = `ALU_ADD;
+                            end
+                            `FUNCT7_SUB: begin
+                                alu_op = `ALU_SUB;
+                            end
+                            default: begin
+                                string msg;
+                                msg = $sformatf("Control unit: Unknown funct7 (OP_R): %b", funct7);
+                                lg.log_wrong(msg);
+                            end
+                        endcase
+                    end
+                    `FUNCT3_SLL: begin
+                        alu_op = `ALU_SLL;
+                    end
+                    `FUNCT3_SLT: begin
+                        alu_op = `ALU_SLT;
+                    end
+                    `FUNCT3_SLTU: begin
+                        alu_op = `ALU_SLTU;
+                    end
+                    `FUNCT3_SRL_SRA: begin
+                        case (funct7)
+                            `FUNCT7_SRL: begin
+                                alu_op = `ALU_SRL;
+                            end
+                            `FUNCT7_SRA: begin
+                                alu_op = `ALU_SRA;
+                            end
+                            default: begin
+                                string msg;
+                                msg = $sformatf("Control unit: Unknown funct7 (OP_R): %b", funct7);
+                                lg.log_wrong(msg);
+                            end
+                        endcase
+                    end
+                endcase
+                
+            end
+
             `OP_I_IMM:    begin
                 mem_read    = 1'b0;
                 mem_write   = 1'b0;
@@ -141,6 +194,47 @@ module control_unit (
                 endcase
             end
             
+            `OP_I_IMM32:  begin
+                mem_read    = 1'b0;
+                mem_write   = 1'b0;
+                reg_write   = 1'b1;
+                mem_to_reg  = 2'b0;
+                alu_a_src   = 2'b00;
+                alu_b_src   = 2'b01;
+                pc_src      = 3'b000;
+                data_width  = 3'b10;
+                
+                case (funct3)
+                    `FUNCT3_ADDI: begin
+                        alu_op = `ALU_ADD;
+                    end
+                    `FUNCT3_SLTI: begin
+                        alu_op = `ALU_SLT;
+                    end
+                    `FUNCT3_SLTIU: begin
+                        alu_op = `ALU_SLTU;
+                    end
+                    `FUNCT3_SLLI: begin
+                        alu_op = `ALU_SLL;
+                    end
+                    `FUNCT3_SRLI_SRAI: begin
+                        case (funct7)
+                            `FUNCT7_SRLI: begin
+                                alu_op = `ALU_SRL;
+                            end
+                            `FUNCT7_SRAI: begin
+                                alu_op = `ALU_SRA;
+                            end
+                            default: begin
+                                string msg;
+                                msg = $sformatf("Control unit: Unknown funct7: %b(OP_I_IMM32)", funct7);
+                                lg.log_wrong(msg);
+                            end
+                        endcase
+                    end
+                endcase
+            end
+
             `OP_I_LOAD:   begin
                 mem_read    = 1'b1;
                 mem_write   = 1'b0;

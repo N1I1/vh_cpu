@@ -14,3 +14,8 @@
 `define DATA_WIDTH 64
 `define DATA_MEM_SIZE 8192
 `define DATA_MEM_WIDTH 64
+
+`define DATA_WIDTH_8 3'd0
+`define DATA_WIDTH_16 3'd1
+`define DATA_WIDTH_32 3'd2
+`define DATA_WIDTH_64 3'd3

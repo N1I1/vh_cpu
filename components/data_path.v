@@ -20,6 +20,7 @@ alu alu0(
     .a(alu_a),
     .b(alu_b),
     .op(alu_op),
+    .data_width(data_width),
 
     .res(alu_res),
     .zero(alu_zero)
