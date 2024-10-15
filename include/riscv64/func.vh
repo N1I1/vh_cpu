@@ -49,6 +49,19 @@ to distinguish `srli` and `srai`
 `define FUNCT7_SRLI         7'b0000000
 
 
+`define FUNCT3_FENCE  3'b000
+`define FUNCT3_FENCE_I 3'b001
+
+`define FUNCT3_MRET   3'b000
+`define FUNCT3_SRET   3'b000
+`define FUNCT3_URET   3'b000
+
+`define FUNCT3_WFI    3'b001
+
+`define FUNCT3_ECALL_EBREAK_MRET 3'b000
+
+`define FUNCT7_MRET   7'b0011000
+
 `define FUNCT3_CSRRW  3'b001
 `define FUNCT3_CSRRS  3'b010
 `define FUNCT3_CSRRC  3'b011

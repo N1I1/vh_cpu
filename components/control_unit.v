@@ -11,15 +11,23 @@ module control_unit (
     output  reg     [1:0]                   mem_to_reg,
 
     output  reg     [1:0]                   alu_a_src,
-    // 0: rs1, 1: pc, 2: 0
+    // 0: rs1, 1: pc, 2: csr
     output  reg     [1:0]                   alu_b_src,
-    // 0: rs2, 1: imm, 2: rs1, 3: 0
+    // 0: rs2, 1: imm, 2: rs1, 3: zimm
+    output  reg                             alu_b_neg,
+    // 0: positive, 1: negative
     output  reg     [`ALU_OP_WIDTH-1:0]     alu_op,
     
+    output  reg                             csr_we,
+    output  reg     [2:0]                   csr_src,
+    // 0: alu_res, 1: rs1 2: zimm, 3: 0
+    output  reg     [1:0]                   trap,
+
     output  reg     [2:0]                   pc_src,  
     // 0 : (pc + 4), 
     // 1: branch eq/ge(tar_addr | pc + 4), 2: branch ne/lt (tar_addr | pc + 4), 
     // 3: jal(tar_addr), 4: jalr(alu_res)
+    // 5: csr
 
     output  reg     [2:0]                   data_width  
     // 0: 8-bit, 1: 16-bit, 2: 32-bit, 3: 64-bit
@@ -36,9 +44,12 @@ module control_unit (
                 mem_to_reg  = 2'b0;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b00;
+                alu_b_neg   = 1'b0;
                 pc_src      = 3'b000;
                 data_width  = 3'b11;
-
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
                 case (funct3)
                     `FUNCT3_ADD_SUB: begin
                         case (funct7)
@@ -98,8 +109,12 @@ module control_unit (
                 mem_to_reg  = 2'b0;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b00;
+                alu_b_neg   = 1'b0;
                 pc_src      = 3'b000;
                 data_width  = 3'b10;
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
                 case (funct3)
                     `FUNCT3_ADD_SUB: begin
                         case (funct7)
@@ -151,9 +166,12 @@ module control_unit (
                 mem_to_reg  = 2'b0;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
+                alu_b_neg   = 1'b0;
                 pc_src      = 3'b000;
                 data_width  = 3'b11;
-                
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
                 case (funct3)
                     `FUNCT3_ADDI: begin
                         alu_op = `ALU_ADD;
@@ -201,9 +219,12 @@ module control_unit (
                 mem_to_reg  = 2'b0;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
+                alu_b_neg   = 1'b0;
                 pc_src      = 3'b000;
                 data_width  = 3'b10;
-                
+                csr_we      = 1'b0;
+                csr_src     = 3'b000;
+                trap        = 2'b00;
                 case (funct3)
                     `FUNCT3_ADDI: begin
                         alu_op = `ALU_ADD;
@@ -242,8 +263,12 @@ module control_unit (
                 mem_to_reg  = 2'b1;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
+                alu_b_neg   = 1'b0;
                 pc_src      = 3'b000;
                 alu_op      = `ALU_ADD;
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
                 case (funct3)
                     `FUNCT3_LB: begin
                         data_width = 3'b00;
@@ -281,8 +306,11 @@ module control_unit (
                 mem_to_reg  = 1'b0;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
+                alu_b_neg   = 1'b0;
                 pc_src      = 3'b000;
-
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
                 case (funct3)
                     `FUNCT3_SB: begin
                         data_width = 3'b00;
@@ -311,7 +339,11 @@ module control_unit (
                 mem_to_reg  = 1'b0;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b00;
+                alu_b_neg   = 1'b0;
                 data_width  = 3'b11;
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
                 case (funct3)
                     `FUNCT3_BEQ: begin
                         alu_op = `ALU_SUB;
@@ -352,8 +384,13 @@ module control_unit (
                 mem_to_reg  = 2'b10;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b00;
+                alu_op      = `ALU_ADD;
+                alu_b_neg   = 1'b0;
                 pc_src      = 3'b100;
-                alu_op      = `ALU_ADD; // Not used
+                data_width  = 3'b11;
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
             end
             
             `OP_I_JALR:   begin
@@ -363,8 +400,13 @@ module control_unit (
                 mem_to_reg  = 2'b10;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
+                alu_b_neg   = 1'b0;
                 alu_op      = `ALU_JALR;
+                data_width  = 3'b11;
                 pc_src      = 3'b100;
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
             end
             
             `OP_U_LUI:    begin
@@ -374,9 +416,13 @@ module control_unit (
                 mem_to_reg  = 2'b0;
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
+                alu_b_neg   = 1'b0;
                 data_width  = 3'b11;
                 pc_src      = 3'b000;
                 alu_op      = `ALU_COPY2;
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
             end
             
             `OP_U_AUIPC:  begin
@@ -386,24 +432,93 @@ module control_unit (
                 mem_to_reg  = 2'b0;
                 alu_a_src   = 2'b01;
                 alu_b_src   = 2'b01;
+                alu_b_neg   = 1'b0;
                 data_width  = 3'b11;
                 pc_src      = 3'b000;
                 alu_op      = `ALU_ADD;
+                csr_src     = 3'b000;
+                csr_we      = 1'b0;
+                trap        = 2'b00;
             end
 
-            // Not implemented
             `OP_I_SYSTEM: begin
                 mem_read    = 1'b0;
                 mem_write   = 1'b0;
-                reg_write   = 1'b0;
                 mem_to_reg  = 2'b0;
-                alu_a_src   = 2'b00;
-                alu_b_src   = 2'b00;
-                data_width  = 3'b00;
+                data_width  = 3'b10;
                 pc_src      = 3'b000;
-                alu_op      = `ALU_COPY2;
-
-                lg.log_wrong("OP_I_SYSTEM: Not implemented");
+                reg_write = 1'b1;
+                mem_to_reg = 2'b11;
+                
+                case (funct3)
+                    `FUNCT3_ECALL_EBREAK_MRET: begin
+                        case (funct7)
+                            `FUNCT7_MRET: begin
+                                trap = 2'b11;
+                                pc_src = 3'b101;
+                            end
+                            // `FUNCT7_WFI: begin
+                                
+                            // end
+                            default:
+                                trap = 2'b01;
+                        endcase
+                    end
+                    `FUNCT3_CSRRW: begin
+                        csr_we = 1'b1;
+                        csr_src = 3'b010;
+                        alu_op = `ALU_ADD;
+                        alu_a_src = 2'b00;
+                        alu_b_src = 2'b10;
+                        alu_b_neg = 1'b0;
+                        trap = 2'b00;
+                    end
+                    `FUNCT3_CSRRS: begin
+                        csr_we = 1'b1;
+                        csr_src = 3'b000;
+                        alu_op = `ALU_OR;
+                        alu_a_src = 2'b10;
+                        alu_b_src = 2'b10;
+                        alu_b_neg = 1'b0;
+                        trap = 2'b00;
+                    end
+                    `FUNCT3_CSRRC: begin
+                        csr_we = 1'b1;
+                        csr_src = 3'b000;
+                        alu_op = `ALU_AND;
+                        alu_a_src = 2'b10;
+                        alu_b_src = 2'b10;
+                        alu_b_neg = 1'b1;
+                        trap = 2'b00;
+                    end
+                    `FUNCT3_CSRRWI: begin
+                        csr_we = 1'b1;
+                        csr_src = 3'b010;
+                        alu_op = `ALU_ADD;
+                        alu_a_src = 2'b00;
+                        alu_b_src = 2'b00;
+                        alu_b_neg = 1'b0;
+                        trap = 2'b00;
+                    end
+                    `FUNCT3_CSRRSI: begin
+                        csr_we = 1'b1;
+                        csr_src = 3'b000;
+                        alu_op = `ALU_OR;
+                        alu_a_src = 2'b10;
+                        alu_b_src = 2'b11;
+                        alu_b_neg = 1'b0;
+                        trap = 2'b00;
+                    end
+                    `FUNCT3_CSRRCI: begin
+                        csr_we = 1'b1;
+                        csr_src = 3'b000;
+                        alu_op = `ALU_AND;
+                        alu_a_src = 2'b10;
+                        alu_b_src = 2'b11;
+                        alu_b_neg = 1'b1;
+                        trap = 2'b00;
+                    end
+                endcase
             end
 
             default: begin

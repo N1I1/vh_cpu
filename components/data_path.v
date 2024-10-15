@@ -30,20 +30,22 @@ mux4_1 mux_alu0_a(
     .sel(alu_a_src),
     .a(reg_file_data_out1),
     .b(pc_out),
-    // .c(csr_data_out),
-
+    .c(csr_data_out),
+    // .d(32'h0),
     .out(alu_a)
 );
 
+wire [`ARCH_WIDTH-1:0] zimm_alu_b;
 mux4_1 mux_alu0_b(
     .sel(alu_b_src),
     .a(reg_file_data_out2),
     .b(instr_decode_ext_imm),
     .c(reg_file_data_out1),
-    // .d(zimm),
+    .d(zimm_alu_b),
     
     .out(alu_b)
 );
+assign zimm_alu_b = alu_b_neg? ~instr_decode_rs1 : instr_decode_rs1;
 
 
 
@@ -120,8 +122,8 @@ mux4_1 mux_reg_file_data_in(
     .a(alu_res),
     .b(data_memory_data_out),
     .c(pc_out+4),
+    .d(csr_data_out),
 
-    // .d(reg_file_data_out2),
     .out(reg_file_data_in)
 );
 
@@ -179,6 +181,10 @@ wire [1:0] mem_to_reg;
 
 wire [1:0] alu_a_src;
 wire [1:0] alu_b_src;
+wire alu_b_neg;
+wire csr_we;
+wire [2:0] csr_src;
+wire [1:0] trap;
 
 wire [2:0] data_width;
 wire [2:0] pc_src;
@@ -196,7 +202,12 @@ control_unit control_unit0(
 
     .alu_a_src(alu_a_src),
     .alu_b_src(alu_b_src),
+    .alu_b_neg(alu_b_neg),
     .alu_op(alu_op),
+
+    .csr_we(csr_we),
+    .csr_src(csr_src),
+    .trap(trap),
 
     .data_width(data_width),
     
@@ -238,5 +249,31 @@ pc pc0(
 );
 
 
+wire [`CSR_WIDTH-1:0] csr_data_out;
+wire [`CSR_WIDTH-1:0] csr_data_in;
+
+wire [`CSR_WIDTH-1:0] zimm;
+assign zimm = {12'h0, instr_decode_rs1};
+
+mux8_1 mux_csr_data_in(
+    .sel(csr_src),
+    .a(alu_res),
+    .b(reg_file_data_out1),
+    .c(zimm),
+    .d(32'h0),
+
+    .out(csr_data_in)
+);
+csrs csrs0(
+    .clk(clk),
+    .rst(rst),
+    .we(csr_we),
+    .trap(trap),
+    .pc(pc_out),
+    .csr_write_addr(instr_decode_imm),
+    .csr_write_data(csr_data_in),
+    .csr_read_addr(instr_decode_imm),
+    .csr_read_data(csr_data_out)
+);
 
 endmodule

@@ -10,7 +10,7 @@ module mux8_1(
     input   wire    [`ARCH_WIDTH-1:0]  f,
     input   wire    [`ARCH_WIDTH-1:0]  g,
     input   wire    [`ARCH_WIDTH-1:0]  h,
-    output  wire    [`ARCH_WIDTH-1:0]  out
+    output  reg     [`ARCH_WIDTH-1:0]  out
 );
 
     always @(*) begin
