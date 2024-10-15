@@ -66,6 +66,7 @@ def compare_regs(regs1, regs2):
     return True
 
 def output_comparison_results(differences, correct_count, output_file):
+    wrong_instrs = []
     with open(output_file, 'w') as f:
         f.write(f'Correct: {correct_count}\n')
         f.write(f'Incorrect: {len(differences)}\n\n')
@@ -73,18 +74,23 @@ def output_comparison_results(differences, correct_count, output_file):
             f.write(f'Instruction {i}:\n')
             f.write(f'Correct:\n{info_to_str(correct)}\n')
             f.write(f'Result:\n{info_to_str(res)}\n\n')
+            wrong_instrs.append(disassemble_instr(correct[1], correct[0]))
+    
+    return wrong_instrs
 
 def disassemble_instr(instr: str, pc: str):
     byte_instr = instr[-2:] + instr[-4:-2] + instr[-6:-4] + instr[-8:-6]
+    if 'x' in byte_instr:
+        return pc + ':\t' + instr
     byte_instr = bytes.fromhex(byte_instr)
     res = ''
     for i in md.disasm(byte_instr, int(pc[2:], 16)):
-        res += f'0x{i.address:016x}:\t({instr})\t{i.mnemonic}\t{i.op_str}\n'
+        res += f'0x{i.address:016x}:\t({instr})\t{i.mnemonic}\t{i.op_str}'
     return res
 
 def info_to_str(info):
     pc, instr, regs = info
-    res = disassemble_instr(instr, pc)
+    res = disassemble_instr(instr, pc) + '\n'
     
     for i, reg in enumerate(regs):
         res += f'{reg}: {regs[reg]}'
@@ -105,15 +111,23 @@ def delete_instr(origin_file_path, modified_file_path, num):
 def save_correct_instr_type(saved_file_path, corrects):
     with open(saved_file_path, 'w') as file:
         for pc, instr in corrects:
-            file.write(disassemble_instr(instr, pc))
+            file.write(disassemble_instr(instr, pc)+'\n')
 
-delete_instr_num = 3
-# Example usage
+delete_instr_num = 2
 correct_log = 'tests/build/format_spike.log'
 my_log = 'tests/build/res.log'
 format_res_log = 'tests/build/format_res.log'
 delete_instr(my_log, format_res_log, delete_instr_num)
 correct_info = read_log(correct_log)
 res_info = read_log(format_res_log)
-differences, correct_count = compare_logs(correct_info, res_info, start=2, end=36)
-output_comparison_results(differences, correct_count, 'tests/build/diff.log')
+with open ('tests/build/format_spike.log', 'r') as f:
+    end = len(f.readlines()) // 10
+differences, correct_count = compare_logs(correct_info, res_info, 2, end)
+wrong_instrs = output_comparison_results(differences, correct_count, 'tests/build/diff.log')
+
+if len(wrong_instrs) == 0:
+    print("\33[1;42mAll instructions are correct!\33[0m")
+else:
+    for instr in wrong_instrs:
+        instr.replace('\n', '')
+        print(f"\33[1;41m{instr}\33[0m")

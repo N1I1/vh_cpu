@@ -19,7 +19,7 @@ always @(posedge clk or posedge rst) begin
         pc_out <= 32'h1000;
         pc_next <= 32'h1000;
     end
-    else
+    else 
         pc_out <= pc_next;
 end
 
@@ -46,7 +46,6 @@ always @(*) begin
             lg.log_wrong(msg);
             msg = $sformatf("current pc_out: %h", pc_out);
             lg.log_wrong(msg);
-            pc_out = pc_out;
             pc_next = pc_out;
         end
     endcase

@@ -1,21 +1,47 @@
 .PHONY: all co si gt clean
 ARCH=riscv64
 
-DIFF_FILE = tests/build/diff.log
+LOG_DIR = tests/build
 
-all: co si diff
+DIFF_FILE = $(LOG_DIR)/diff.log
+RES_FILE = $(LOG_DIR)/res.log
+FORMAT_RES_FILE = $(LOG_DIR)/format_res.log
+
+CORRECT_INSTR_FILE = $(LOG_DIR)/correct_instr.log
+ORDERED_CORRECT_INSTR_FILE = $(LOG_DIR)/orrdered_correct_instr.log
+
+ALL_RES_FILE = $(RES_FILE) $(FORMAT_RES_FILE) $(DIFF_FILE) \
+	$(CORRECT_INSTR_FILE) $(ORDERED_CORRECT_INSTR_FILE)
+
+SPIKE_FILE = tests/build/spike.log
+SPIKE_FORMAT_RES_FILE = $(LOG_DIR)/format_spike.log
+
+
+
+all: update_instr_file co si diff order
 	@echo "All done."
-	@echo "Please check the diff.log file.(tests/build/diff.log)"
+	@echo "Please check the diff.log file.($(LOG_DIR)/diff.log)"
 
-diff: tests/build/format_res.log tests/build/format_spike.log
+	
+order: $(CORRECT_INSTR_FILE)
+	@sort -k 3 $(LOG_DIR)/correct_instr.log > $(LOG_DIR)/orrdered_correct_instr.log
+
+diff: $(FORMAT_RES_FILE) $(SPIKE_FORMAT_RES_FILE)
 	@python3 tests/src/diff.py
 	@echo "Diff done."
 
-tests/build/format_res.log: co si
+$(FORMAT_RES_FILE): update_instr_file co si
 
 
-tests/build/format_spike.log: 
+$(SPIKE_FORMAT_RES_FILE):
 	@cd tests && make
+
+$(SPIKE_FILE):
+	@cd tests && make
+
+update_instr_file: $(SPIKE_FILE)
+	@python3 assets/elf2instr.py
+	@echo "Update instr file done."
 
 co: 
 	@iverilog  -g2005-sv -o $(f).vvp -y ./components/ -y . -y ./utils/ -I ./include -I ./include/$(ARCH) $(f).v
@@ -31,7 +57,7 @@ gt:
 
 clean:
 	rm -f *.vcd *.vvp
-	rm -f tests/build/diff.log tests/build/format_res.log tests/build/res.log tests/build/correct_instr.log
+	rm -f $(ALL_RES_FILE)
 	@echo "Clean done."
 
 clean-all:

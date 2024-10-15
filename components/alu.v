@@ -84,4 +84,6 @@ Logger lg();
         endcase
     end
 
+    assign zero = (res == 0);
+
 endmodule
