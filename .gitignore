@@ -6,3 +6,4 @@ notes/*
 spike/build/
 assets/
 build/
+spike/src/test.S
