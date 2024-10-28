@@ -3,5 +3,6 @@
 *.vpi
 notes/*
 *_tb.v
-tests/build/
+spike/build/
 assets/
+build/

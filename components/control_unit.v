@@ -33,7 +33,6 @@ module control_unit (
     // 0: 8-bit, 1: 16-bit, 2: 32-bit, 3: 64-bit
     );
     Logger lg();
-    Assert as();
 
     always @(*) begin
         case (opcode)
