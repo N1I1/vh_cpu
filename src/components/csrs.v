@@ -1,4 +1,4 @@
-`include "../include/riscv64/common.vh"
+`include "../include/common.vh"
 
 module csrs(
     input                               clk,

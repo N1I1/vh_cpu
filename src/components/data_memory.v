@@ -1,4 +1,4 @@
-`include "../include/riscv64/common.vh"
+`include "../include/common.vh"
 
 module data_memory (
     input   wire                            clk,
@@ -10,6 +10,7 @@ module data_memory (
     input   wire    [`DATA_WIDTH-1:0]       data_in,
     output  reg     [`DATA_WIDTH-1:0]       data_out
     );
+    integer i;
 
     reg [`DATA_WIDTH-1:0] ram [0:`DATA_MEM_SIZE-1];
 
@@ -19,7 +20,7 @@ module data_memory (
 
     always @(posedge clk) begin
         if (rst)
-            for (integer i = 0; i < 1024; i = i + 1) begin
+            for (i = 0; i < 1024; i = i + 1) begin
                 ram[i] = 0;
             end
         else if (we) begin

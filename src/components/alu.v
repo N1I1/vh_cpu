@@ -1,4 +1,4 @@
-`include "../include/riscv64/common.vh"
+`include "../include/common.vh"
 
 module alu(
     input       [`ARCH_WIDTH-1:0]     a,
@@ -6,10 +6,9 @@ module alu(
     input       [`ALU_OP_WIDTH-1:0]   op,
     input       [2:0]                 data_width,
     output reg  [`ARCH_WIDTH-1:0]     res,
-    output reg                        zero
+    output wire                       zero
 );
 
-Logger lg();
     reg [`ARCH_WIDTH-1:0]     alu_res_temp;
 
     always @(*) begin
@@ -54,9 +53,7 @@ Logger lg();
                 alu_res_temp = (a + b) & ~1;
             end
             default: begin
-                string msg;
-                msg = $sformatf("Invalid ALU operation: %b", op);
-                lg.log_wrong(msg);
+                $display("Invalid ALU operation: %b", op);
             end
         endcase
     end
@@ -76,9 +73,7 @@ Logger lg();
                 res = alu_res_temp[63:0];
             end
             default: begin
-                string msg;
-                msg = $sformatf("Invalid data width: %b", data_width);
-                lg.log_wrong(msg);
+                $display("Invalid data width: %b", data_width);
                 res = 0;
             end
         endcase

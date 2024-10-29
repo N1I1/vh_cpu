@@ -17,11 +17,12 @@ all: update_instr_file base
 
 # -------------------------------------------------
 # Compile and simulate
+SRC=src
 base: compile simulate
 	@echo "Base done."
 
 compile: 
-	@iverilog  -g2005-sv -o $(f).vvp -y ./components/ -y . -y ./utils/ -I ./include -I ./include/$(ARCH) $(f).v
+	@iverilog  -g2005-sv -o $(f).vvp -y $(SRC)/components/ -y . -y $(SRC)/utils/ -I $(SRC)/include $(f).v
 	@echo "Compilation is complete."
 
 simulate:
@@ -74,11 +75,11 @@ export ELF_FILE RAM_FILE ASSETS_DIR
 order: $(CORRECT_INSTR_LOG)
 	@sort -k 3 $(CORRECT_INSTR_LOG) > $(ORDERED_CORRECT_INSTR_LOG)
 
-diff: $(FORMAT_RES_LOG) $(SPIKE_FORMAT_LOG)
+diff: $(RES_LOG) $(SPIKE_FORMAT_LOG)
 	@python3 $(SPIKE_DIR)/src/diff.py
 	@echo "Diff done."
 
-ifeq ($(wildcard $(FORMAT_RES_LOG)),)
+ifeq ($(wildcard $(RES_LOG)),)
 $(FORMAT_RES_LOG): update_instr_file base
 endif
 

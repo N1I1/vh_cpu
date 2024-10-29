@@ -1,4 +1,4 @@
-`include "../include/riscv64/common.vh"
+`include "../include/common.vh"
 
 module mux8_1(
     input   wire    [2:0]   sel,

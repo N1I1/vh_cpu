@@ -1,6 +1,6 @@
 `include "opcode.vh"
 `include "alu.vh"
-`include "../Color.vh"
+`include "Color.vh"
 `include "func.vh"
 
 `define ARCH_WIDTH 64

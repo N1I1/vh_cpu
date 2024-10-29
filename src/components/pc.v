@@ -1,4 +1,4 @@
-`include "../include/riscv64/common.vh"
+`include "../include/common.vh"
 
 module pc(
     input                               clk,
@@ -16,6 +16,7 @@ Logger lg();
 reg [31:0] pc_next;
 always @(posedge clk or posedge rst) begin
     if (rst) begin
+        // to adapt to spike, pc start from 0x1000. More details in spike/build/spike.log
         pc_out <= 32'h1000;
         pc_next <= 32'h1000;
     end
@@ -41,11 +42,8 @@ always @(*) begin
         3'b011: pc_next = tar_addr;
         3'b100: pc_next = alu_res;
         default: begin
-            string msg;
-            msg = $sformatf("Invalid pc_src: %h", pc_src);
-            lg.log_wrong(msg);
-            msg = $sformatf("current pc_out: %h", pc_out);
-            lg.log_wrong(msg);
+            $display("Invalid pc_src: %h", pc_src);
+            $display("current pc_out: %h", pc_out);
             pc_next = pc_out;
         end
     endcase

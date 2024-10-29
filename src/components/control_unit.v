@@ -1,4 +1,4 @@
-`include "../include/riscv64/common.vh"
+`include "../include/common.vh"
 
 module control_unit (
     input   wire    [6:0]                   opcode,
@@ -32,7 +32,6 @@ module control_unit (
     output  reg     [2:0]                   data_width  
     // 0: 8-bit, 1: 16-bit, 2: 32-bit, 3: 64-bit
     );
-    Logger lg();
 
     always @(*) begin
         case (opcode)
@@ -59,9 +58,7 @@ module control_unit (
                                 alu_op = `ALU_SUB;
                             end
                             default: begin
-                                string msg;
-                                msg = $sformatf("Control unit: Unknown funct7 (OP_R): %b", funct7);
-                                lg.log_wrong(msg);
+                                $display("Control unit: Unknown funct7 (OP_R): %b", funct7);
                             end
                         endcase
                     end
@@ -86,9 +83,7 @@ module control_unit (
                                 alu_op = `ALU_SRA;
                             end
                             default: begin
-                                string msg;
-                                msg = $sformatf("Control unit: Unknown funct7 (OP_R): %b", funct7);
-                                lg.log_wrong(msg);
+                                $display("Control unit: Unknown funct7 (OP_R): %b", funct7);
                             end
                         endcase
                     end
@@ -124,9 +119,7 @@ module control_unit (
                                 alu_op = `ALU_SUB;
                             end
                             default: begin
-                                string msg;
-                                msg = $sformatf("Control unit: Unknown funct7 (OP_R): %b", funct7);
-                                lg.log_wrong(msg);
+                                $display("Control unit: Unknown funct7 (OP_R): %b", funct7);
                             end
                         endcase
                     end
@@ -148,9 +141,7 @@ module control_unit (
                                 alu_op = `ALU_SRA;
                             end
                             default: begin
-                                string msg;
-                                msg = $sformatf("Control unit: Unknown funct7 (OP_R): %b", funct7);
-                                lg.log_wrong(msg);
+                                $display("Control unit: Unknown funct7 (OP_R): %b", funct7);
                             end
                         endcase
                     end
@@ -202,9 +193,7 @@ module control_unit (
                                 alu_op = `ALU_SRA;
                             end
                             default: begin
-                                string msg;
-                                msg = $sformatf("Control unit: Unknown funct7: %b(OP_I_IMM)", funct7);
-                                lg.log_wrong(msg);
+                                $display("Control unit: Unknown funct7: %b(OP_I_IMM)", funct7);
                             end
                         endcase
                     end
@@ -246,9 +235,7 @@ module control_unit (
                                 alu_op = `ALU_SRA;
                             end
                             default: begin
-                                string msg;
-                                msg = $sformatf("Control unit: Unknown funct7: %b(OP_I_IMM32)", funct7);
-                                lg.log_wrong(msg);
+                                $display("Control unit: Unknown funct7: %b(OP_I_IMM32)", funct7);
                             end
                         endcase
                     end
@@ -291,9 +278,7 @@ module control_unit (
                         data_width = 3'b10;
                     end
                     default: begin
-                        string msg;
-                        msg = $sformatf("Control unit: Unknown funct3 (OP_I_LOAD): %b", funct3);
-                        lg.log_wrong(msg);
+                        $display("Control unit: Unknown funct3 (OP_I_LOAD): %b", funct3);
                     end
                 endcase
             end
@@ -324,9 +309,7 @@ module control_unit (
                         data_width = 3'b11;
                     end
                     default: begin
-                        string msg;
-                        msg = $sformatf("Control unit: Unknown funct3 (OP_S): %b", funct3);
-                        lg.log_wrong(msg);
+                        $display("Control unit: Unknown funct3 (OP_S): %b", funct3);
                     end
                 endcase
             end
@@ -369,9 +352,7 @@ module control_unit (
                         pc_src = 3'b001;
                     end
                     default: begin
-                        string msg;
-                        msg = $sformatf("Control unit: Unknown funct3 (OP_B): %b", funct3);
-                        lg.log_wrong(msg);
+                        $display("Control unit: Unknown funct3 (OP_B): %b", funct3);
                     end
                 endcase
             end
@@ -521,9 +502,7 @@ module control_unit (
             end
 
             default: begin
-                string msg;
-                msg = $sformatf("Control unit: Unknown opcode: %b", opcode);
-                lg.log_wrong(msg);
+                $display("Control unit: Unknown opcode: %b", opcode);
             end
         endcase
     end

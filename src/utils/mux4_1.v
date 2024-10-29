@@ -1,4 +1,4 @@
-`include "../include/riscv64/common.vh"
+`include "../include/common.vh"
 
 module mux4_1(
     input   wire    [1:0]   sel,

@@ -1,4 +1,4 @@
-`include "../include/riscv64/common.vh"
+`include "../include/common.vh"
 
 module reg_file(
     input                       clk,
@@ -14,13 +14,14 @@ module reg_file(
     input   [`INSTR_WIDTH-1:0] instr,
     input   [`INSTR_MEM_WIDTH-1:0] pc_out
 );
+    integer i;
     reg [`ARCH_WIDTH-1:0]         regs [31:0];
 
     assign data_out1 = regs[rs1];
     assign data_out2 = regs[rs2];
 
     initial begin
-        for (integer i = 0; i < 32; i = i + 1) begin
+        for (i = 0; i < 32; i = i + 1) begin
             regs[i] = 0;
         end
 
@@ -28,7 +29,7 @@ module reg_file(
 
     always @(posedge clk) begin
         if (rst) begin
-            for (integer i = 0; i < 32; i = i + 1) begin
+            for (i = 0; i < 32; i = i + 1) begin
                 regs[i] = 0;
             end
         end else if (we) begin
@@ -40,6 +41,7 @@ module reg_file(
 
 
 
+    // When use vivado to simulate, the following code will should be deleted or commented
     Logger lg();
     always @(negedge clk) begin
         string msg;

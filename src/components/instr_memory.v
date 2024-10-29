@@ -1,10 +1,10 @@
-`include "../include/riscv64/common.vh"
+`include "../include/common.vh"
 
 module instr_memory(
     input   wire                            clk,
     input   wire    [`INSTR_MEM_WIDTH-1:0]  instr_addr,
     input   wire                            re,
-    output  reg     [`INSTR_WIDTH-1:0]      instr
+    output  wire     [`INSTR_WIDTH-1:0]      instr
 );
 
     reg [`INSTR_WIDTH-1:0] instr_mem[0:`INSTR_MEM_SIZE-1];
