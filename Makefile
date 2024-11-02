@@ -2,6 +2,15 @@
 .PHONY: diff
 
 ARCH=riscv64
+ifeq ($(python),)
+	PYTHON = python3
+endif
+ifeq ($(python3),)
+	PYTHON = python3
+endif
+ifeq ($(PYTHON),)
+	$(error there is no python3 or python command)
+endif
 
 ifeq ($(f),)
     $(error f=$(f) is not a correct file)
@@ -76,7 +85,7 @@ order: $(CORRECT_INSTR_LOG)
 	@sort -k 3 $(CORRECT_INSTR_LOG) > $(ORDERED_CORRECT_INSTR_LOG)
 
 diff: $(RES_LOG) $(SPIKE_FORMAT_LOG)
-	@python3 $(SPIKE_DIR)/src/diff.py
+	@$(PYTHON) $(SPIKE_DIR)/src/diff.py
 	@echo "Diff done."
 
 ifeq ($(wildcard $(RES_LOG)),)
@@ -84,12 +93,12 @@ $(FORMAT_RES_LOG): update_instr_file base
 endif
 
 update_instr_file: $(SPIKE_LOG)
-	@python assets/elf2instr.py
+	@$(PYTHON) assets/elf2instr.py
 	@echo "Update instr file done."
 
 # not implemented yet
 init_ram: $(SPIKE_LOG)
-	@python assets/elf2ram.py
+	@$(PYTHON) assets/elf2ram.py
 	@echo "Init ram done."
 
 
