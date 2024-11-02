@@ -31,11 +31,13 @@ mux4_1 mux_alu0_a(
     .a(reg_file_data_out1),
     .b(pc_out),
     .c(csr_data_out),
-    // .d(32'h0),
+    .d(32'h0),
     .out(alu_a)
 );
 
+wire [`ARCH_WIDTH-1:0] instr_decode_ext_imm;
 wire [`ARCH_WIDTH-1:0] zimm_alu_b;
+wire alu_b_neg;
 mux4_1 mux_alu0_b(
     .sel(alu_b_src),
     .a(reg_file_data_out2),
@@ -85,7 +87,6 @@ wire [4:0] instr_decode_rs1;
 wire [4:0] instr_decode_rs2;
 wire [4:0] instr_decode_rd;
 wire [31:0] instr_decode_imm;
-wire [`ARCH_WIDTH-1:0] instr_decode_ext_imm;
 wire [11:0] instr_decode_csr_addr;
 
 assign instr_decode_ext_imm = $signed(instr_decode_imm);
@@ -181,7 +182,6 @@ wire [1:0] mem_to_reg;
 
 wire [1:0] alu_a_src;
 wire [1:0] alu_b_src;
-wire alu_b_neg;
 wire csr_we;
 wire [2:0] csr_src;
 wire [1:0] trap;

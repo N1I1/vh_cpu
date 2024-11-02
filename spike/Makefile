@@ -5,7 +5,7 @@ SRC_DIR = src
 BUILD_DIR = build
 
 SPIKE_FLAGS = -m0x2000:0x20000 --isa=RV64I --log-commits --log=build/spike.log build/output.elf
-INSTR_START = 0x10000 # defined in test.ld
+INSTR_START = 0x3000 # defined in test.ld
 PC_START = 0x1000
 export INSTR_START PC_START
 

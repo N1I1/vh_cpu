@@ -25,7 +25,6 @@ module instr_decode (
     wire [31:0] B_imm;
     wire [31:0] S_imm;
     wire [31:0] SYSTEM_imm;
-    wire [11:0] csr_addr;
     
     
     assign opcode   = ins[6:0];
