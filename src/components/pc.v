@@ -11,14 +11,12 @@ module pc(
     output reg [`INSTR_MEM_WIDTH-1:0]       pc_out
 );
 
-Logger lg();
 
-reg [31:0] pc_next;
-always @(posedge clk or posedge rst) begin
-    if (rst) begin
+reg [`INSTR_MEM_WIDTH-1:0] pc_next;
+always @(posedge clk) begin
+    if (!rst) begin
         // to adapt to spike, pc start from 0x1000. More details in spike/build/spike.log
-        pc_out <= 32'h1000;
-        pc_next <= 32'h1000;
+        pc_out <= `INSTR_MEM_WIDTH-1'h1000;
     end
     else 
         pc_out <= pc_next;
@@ -27,18 +25,8 @@ end
 always @(*) begin
     case (pc_src)
         3'b000: pc_next = pc_out + 4;
-        3'b001: begin
-            if (alu_zero)
-                pc_next = tar_addr;
-            else
-                pc_next = pc_out + 4;
-        end
-        3'b010: begin
-            if (!alu_zero)
-                pc_next = tar_addr;
-            else
-                pc_next = pc_out + 4;
-        end
+        3'b001: pc_next = (alu_zero) ? tar_addr : pc_out + 4;
+        3'b010: pc_next = (!alu_zero) ? tar_addr : pc_out + 4;
         3'b011: pc_next = tar_addr;
         3'b100: pc_next = alu_res;
         default: begin
