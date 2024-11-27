@@ -23,11 +23,7 @@ module control_unit (
     // 0: alu_res, 1: rs1 2: zimm, 3: 0
     output  reg     [1:0]                   trap,
 
-    output  reg     [2:0]                   pc_src,  
-    // 0 : (pc + 4), 
-    // 1: branch eq/ge(tar_addr | pc + 4), 2: branch ne/lt (tar_addr | pc + 4), 
-    // 3: jal(tar_addr), 4: jalr(alu_res)
-    // 5: csr
+    output  reg     [3:0]                   branch_type,
 
     output  reg     [2:0]                   data_width  
     // 0: 8-bit, 1: 16-bit, 2: 32-bit, 3: 64-bit
@@ -43,7 +39,7 @@ module control_unit (
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b00;
                 alu_b_neg   = 1'b0;
-                pc_src      = 3'b000;
+                branch_type = 4'b0000;
                 data_width  = 3'b11;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
@@ -104,7 +100,7 @@ module control_unit (
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b00;
                 alu_b_neg   = 1'b0;
-                pc_src      = 3'b000;
+                branch_type = 4'b0000;
                 data_width  = 3'b10;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
@@ -157,7 +153,7 @@ module control_unit (
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
                 alu_b_neg   = 1'b0;
-                pc_src      = 3'b000;
+                branch_type = 4'b0000;
                 data_width  = 3'b11;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
@@ -208,7 +204,7 @@ module control_unit (
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
                 alu_b_neg   = 1'b0;
-                pc_src      = 3'b000;
+                branch_type = 4'b0000;
                 data_width  = 3'b10;
                 csr_we      = 1'b0;
                 csr_src     = 3'b000;
@@ -250,7 +246,7 @@ module control_unit (
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
                 alu_b_neg   = 1'b0;
-                pc_src      = 3'b000;
+                branch_type = 4'b0000;
                 alu_op      = `ALU_ADD;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
@@ -291,7 +287,7 @@ module control_unit (
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
                 alu_b_neg   = 1'b0;
-                pc_src      = 3'b000;
+                branch_type = 4'b0000;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
                 trap        = 2'b00;
@@ -326,31 +322,14 @@ module control_unit (
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
                 trap        = 2'b00;
+                alu_op      = `ALU_ADD;
                 case (funct3)
-                    `FUNCT3_BEQ: begin
-                        alu_op = `ALU_SUB;
-                        pc_src = 3'b001;
-                    end
-                    `FUNCT3_BNE: begin
-                        alu_op = `ALU_SUB;
-                        pc_src = 3'b010;
-                    end
-                    `FUNCT3_BLT: begin
-                        alu_op = `ALU_SLT;
-                        pc_src = 3'b010;
-                    end
-                    `FUNCT3_BGE: begin
-                        alu_op = `ALU_SLT;
-                        pc_src = 3'b001;
-                    end
-                    `FUNCT3_BLTU: begin
-                        alu_op = `ALU_SLTU;
-                        pc_src = 3'b010;
-                    end
-                    `FUNCT3_BGEU: begin
-                        alu_op = `ALU_SLTU;
-                        pc_src = 3'b001;
-                    end
+                    `FUNCT3_BEQ: branch_type = 4'b0011;
+                    `FUNCT3_BNE: branch_type = 4'b0100;
+                    `FUNCT3_BLT: branch_type = 4'b0101;
+                    `FUNCT3_BGE: branch_type = 4'b0110;
+                    `FUNCT3_BLTU: branch_type = 4'b0111;
+                    `FUNCT3_BGEU: branch_type = 4'b1000;
                     default: begin
                         $display("Control unit: Unknown funct3 (OP_B): %b", funct3);
                     end
@@ -366,7 +345,7 @@ module control_unit (
                 alu_b_src   = 2'b00;
                 alu_op      = `ALU_ADD;
                 alu_b_neg   = 1'b0;
-                pc_src      = 3'b100;
+                branch_type = 4'b0001;
                 data_width  = 3'b11;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
@@ -383,7 +362,7 @@ module control_unit (
                 alu_b_neg   = 1'b0;
                 alu_op      = `ALU_JALR;
                 data_width  = 3'b11;
-                pc_src      = 3'b100;
+                branch_type = 4'b0010;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
                 trap        = 2'b00;
@@ -398,7 +377,7 @@ module control_unit (
                 alu_b_src   = 2'b01;
                 alu_b_neg   = 1'b0;
                 data_width  = 3'b11;
-                pc_src      = 3'b000;
+                branch_type = 4'b0000;
                 alu_op      = `ALU_COPY2;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
@@ -414,7 +393,7 @@ module control_unit (
                 alu_b_src   = 2'b01;
                 alu_b_neg   = 1'b0;
                 data_width  = 3'b11;
-                pc_src      = 3'b000;
+                branch_type = 4'b0000;
                 alu_op      = `ALU_ADD;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;
@@ -426,7 +405,7 @@ module control_unit (
                 mem_write   = 1'b0;
                 mem_to_reg  = 2'b0;
                 data_width  = 3'b10;
-                pc_src      = 3'b000;
+                branch_type = 4'b0000;
                 reg_write = 1'b1;
                 mem_to_reg = 2'b11;
                 
@@ -435,7 +414,7 @@ module control_unit (
                         case (funct7)
                             `FUNCT7_MRET: begin
                                 trap = 2'b11;
-                                pc_src = 3'b101;
+                                branch_type = 4'b0000; // may be a little problem
                             end
                             // `FUNCT7_WFI: begin
                                 

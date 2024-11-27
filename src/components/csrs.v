@@ -20,7 +20,7 @@ module csrs(
         mtvec = 0;
     end
 
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
             mstatus <= 0;
             mepc <= 0;

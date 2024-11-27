@@ -4,30 +4,31 @@ module pipe_if_id_reg(
     input rst,
     input if_id_en,
     input if_id_stall,
-    input [`INSTR_WIDTH-1:0] instr,
-    input [`INSTR_MEM_WIDTH-1:0] pc_out,
-    output reg [`INSTR_MEM_WIDTH-1:0] if_id_pc_out,
-    output reg [`INSTR_WIDTH-1:0] if_id_instr
+    input flush,
+    input [`INSTR_WIDTH-1:0] if_instr,
+    input [`INSTR_MEM_WIDTH-1:0] if_pc_out,
+    output reg [`INSTR_MEM_WIDTH-1:0] id_pc_out,
+    output reg [`INSTR_WIDTH-1:0] id_instr
 );
     
     always @(posedge clk) begin
         if (rst) begin
-            if_id_pc_out <= `ARCH_WIDTH-1'h0; // need to modify;
-            if_id_instr <= `INSTR_WIDTH-1'h0;
+            id_pc_out <= `ARCH_WIDTH'h0; // need to modify;
+            id_instr <= `INSTR_WIDTH'h13;
         end else if (if_id_en) begin
             if (if_id_stall) begin
-                if_id_pc_out <= if_id_pc_out;
-                if_id_instr <= if_id_instr;
+                id_pc_out <= id_pc_out;
+                id_instr <= id_instr;
             end else if (flush) begin
-                if_id_pc_out <= `ARCH-1'h0;
-                if_id_instr <= `INSTR_WIDTH-1'h13; // nop instr
+                id_pc_out <= `ARCH_WIDTH'h0;
+                id_instr <= `INSTR_WIDTH'h13; // nop instr
             end else begin
-                if_id_pc_out <= pc_out;
-                if_id_instr <= instr;
+                id_pc_out <= if_pc_out;
+                id_instr <= if_instr;
             end
         end else begin
-            if_id_pc_out <= if_id_pc_out;
-            if_id_instr <= if_id_instr;
+            id_pc_out <= id_pc_out;
+            id_instr <= id_instr;
         end
     end
 endmodule
