@@ -31,7 +31,7 @@ base: compile simulate
 	@echo "Base done."
 
 compile: 
-	@iverilog  -g2005-sv -o $(f).vvp -y $(SRC)/components/ -y . -y $(SRC)/utils/ -I $(SRC)/include $(f).v
+	@iverilog  -g2005-sv -o $(f).vvp -y $(SRC)/components/ -y. -y $(SRC)/utils/ -y ./kit/ -I $(SRC)/include $(f).v
 	@echo "Compilation is complete."
 
 simulate:
