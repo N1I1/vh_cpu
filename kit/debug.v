@@ -51,7 +51,7 @@ module debug(
         endcase
     end
 
-    tube tube0(.clk(div_clk), .rst(tmp_rst), .data_in(tube_data_in),.seg_cs(seg_cs), .seg_data1(seg_data1), .seg_data2(seg_data2));
+    display tube0(.clk(div_clk), .rst(tmp_rst), .data_in(tube_data_in),.seg_cs(seg_cs), .seg_data1(seg_data1), .seg_data2(seg_data2));
     
 
     initial begin
