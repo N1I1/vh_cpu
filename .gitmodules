@@ -1,0 +1,3 @@
+[submodule "simple_rv_emu"]
+	path = simple_rv_emu
+	url = https://github.com/N1I1/simple_rv_emu

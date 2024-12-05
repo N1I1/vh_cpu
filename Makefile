@@ -2,15 +2,6 @@
 .PHONY: diff
 
 ARCH=riscv64
-ifeq ($(python),)
-	PYTHON = python3
-endif
-ifeq ($(python3),)
-	PYTHON = python3
-endif
-ifeq ($(PYTHON),)
-	$(error there is no python3 or python command)
-endif
 
 ifeq ($(f),)
     $(error f=$(f) is not a correct file)
@@ -20,9 +11,9 @@ endif
 
 
 
-all: update_instr_file base
+all: base
 	@echo "All done."
-	@echo "If you want to diff the result in linux, run 'make diff'."
+	@echo "If you want to diff the result, run 'make diff'."
 
 # -------------------------------------------------
 # Compile and simulate
@@ -42,73 +33,30 @@ gt:
 	@gtkwave *.vcd
 	@echo "Waveform done."
 
-# -------------------------------------------------
-# Spike
-SPIKE_BUILD_DIR = $(SPIKE_DIR)/build
-SPIKE_DIR = spike
-
-SPIKE_LOG = $(SPIKE_DIR)/build/$(SPIKE_DIR).log
-SPIKE_FORMAT_LOG = $(SPIKE_BUILD_DIR)/format_spike.log
-
-ifeq ($(wildcard $(SPIKE_LOG)),)
-$(SPIKE_LOG):
-	@cd $(SPIKE_DIR) && make
-endif
-
-ifeq ($(wildcard $(SPIKE_FORMAT_LOG)),)
-$(SPIKE_FORMAT_LOG): $(SPIKE_LOG)
-	@cd $(SPIKE_DIR) && make format
-endif
-
-
-
-# -------------------------------------------------
-BUILD_DIR = build
-
-DIFF_LOG = $(BUILD_DIR)/diff.log
-RES_LOG = $(BUILD_DIR)/res.log
-FORMAT_RES_LOG = $(BUILD_DIR)/format_res.log
-CORRECT_INSTR_LOG = $(BUILD_DIR)/correct_instr.log
-ORDERED_CORRECT_INSTR_LOG = $(BUILD_DIR)/orrdered_correct_instr.log
-ALL_RES_LOG = $(RES_LOG) $(FORMAT_RES_LOG) $(DIFF_LOG) \
-	$(CORRECT_INSTR_LOG) $(ORDERED_CORRECT_INSTR_LOG)
-
-ELF_FILE = $(BUILD_DIR)/output.elf
-RAM_FILE = $(BUILD_DIR)/ram.hex
-ASSETS_DIR = assets
-
-export SPIKE_BUILD_DIR ARCH SPIKE_DIR RES_LOG FORMAT_RES_LOG CORRECT_INSTR_LOG 
-export ORDERED_CORRECT_INSTR_LOG SPIKE_LOG SPIKE_FORMAT_LOG ALL_RES_LOG
-export ELF_FILE RAM_FILE ASSETS_DIR
-
-order: $(CORRECT_INSTR_LOG)
-	@sort -k 3 $(CORRECT_INSTR_LOG) > $(ORDERED_CORRECT_INSTR_LOG)
-
-diff: $(RES_LOG) $(SPIKE_FORMAT_LOG)
-	@$(PYTHON) $(SPIKE_DIR)/src/diff.py
-	@echo "Diff done."
-
-ifeq ($(wildcard $(RES_LOG)),)
-$(FORMAT_RES_LOG): update_instr_file base
-endif
-
-update_instr_file: $(SPIKE_LOG)
-	@$(PYTHON) assets/elf2instr.py
-	@echo "Update instr file done."
-
-# not implemented yet
-init_ram: $(SPIKE_LOG)
-	@$(PYTHON) assets/elf2ram.py
-	@echo "Init ram done."
-
-
 # ------------------------------------------------
+# generate ref.log
+
+EMU_DIR = simple_rv_emu
+REF_LOG = $(EMU_DIR)/build/ref.log
+DUT_LOG = build/dut.log
+
+$(REF_LOG):
+	@cd $(EMU_DIR) && make && ./build/emulator
+
+$(DUT_LOG): base
+
+update_ram:
+	cp assets/ram.hex $(EMU_DIR)/assets/instr.hex
+
+diff: update_instr_file $(REF_LOG) $(DUT_LOG)
+	@python3 assets/diff.py
+
 clean:
 	rm -f *.vcd *.vvp
-	rm -f $(ALL_RES_LOG) $(BUILD_DIR)/*.log
+	rm -rf build/*
 	@echo "Clean done."
 
 clean-all:
 	rm -f *.vcd *.vvp *.log
-	@cd $(SPIKE_DIR) && make clean
+	@cd $(EMU_DIR) && make clean
 	@echo "Clean-all done."

@@ -45,19 +45,19 @@ module reg_file(
     Logger lg();
     always @(negedge clk) begin
         string msg;
-        msg = $sformatf("0x%016h (0x%08h)\n", pc_out, instr);
+        msg = $sformatf("PC: 0x%016h\tInstr: 0x%08h\n", pc_out, instr);
         lg.write_log(msg);
 
         for (integer i = 0; i < 32; i = i + 1) begin
             if (we && i == rd && i > 0) begin
                 if (i < 10)
-                    msg = $sformatf("x%01d:0x%016h", i, data_in);
+                    msg = $sformatf("x%01d: 0x%016h", i, data_in);
                 else
-                    msg = $sformatf("x%02d:0x%016h", i, data_in);
+                    msg = $sformatf("x%02d: 0x%016h", i, data_in);
             end else if (i < 10) begin
-                msg = $sformatf("x%01d:0x%016h", i, regs[i]);
+                msg = $sformatf("x%01d: 0x%016h", i, regs[i]);
             end else begin
-                msg = $sformatf("x%02d:0x%016h", i, regs[i]);
+                msg = $sformatf("x%02d: 0x%016h", i, regs[i]);
             end
             lg.write_log(msg);
 

@@ -5,7 +5,7 @@ module Logger;
 
     task log(input string msg);
         if (logfile == 0) begin
-            logfile = $fopen("build/res.log", "w");
+            logfile = $fopen("build/dut.log", "w");
         end
         $fdisplay(logfile, "%s", msg);
         $display("%s", msg);
@@ -13,7 +13,7 @@ module Logger;
 
     task write_log(input string msg);
         if (logfile == 0) begin
-            logfile = $fopen("build/res.log", "w");
+            logfile = $fopen("build/dut.log", "w");
         end
         $fwrite(logfile, "%s", msg);
     endtask
@@ -22,7 +22,7 @@ module Logger;
         string format;
         format = `ANSI_FMT(msg, `ANSI_BG_YELLOW);
         if (logfile == 0) begin
-            logfile = $fopen("build/res.log", "w");
+            logfile = $fopen("build/dut.log", "w");
         end
         $display(format);
     endtask
@@ -31,7 +31,7 @@ module Logger;
         string format;
         format = `ANSI_FMT(msg, `ANSI_BG_RED);
         if (logfile == 0) begin
-            logfile = $fopen("build/res.log", "w");
+            logfile = $fopen("build/dut.log", "w");
         end
         $display(format);
     endtask
@@ -40,7 +40,7 @@ module Logger;
         string start_info;
         start_info = `ANSI_FMT(`ARCH, `ANSI_BG_GREEN); 
         if (logfile == 0) begin
-            logfile = $fopen("build/res.log", "w");
+            logfile = $fopen("build/dut.log", "w");
         end
 
         $display("ARCH %s Starting simulation...", start_info);
