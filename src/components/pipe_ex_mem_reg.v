@@ -4,7 +4,6 @@ module pipe_ex_mem_reg(
     input clk,
     input rst,
     input ex_mem_en,
-    input ex_mem_stall, // not sure if need this
     input flush,
     
     input [`ARCH_WIDTH-1:0] ex_alu_res,
@@ -54,6 +53,8 @@ module pipe_ex_mem_reg(
     output reg mem_csr_we,
     output reg [31:0] mem_csr_data_out,
 
+    input ex_stall,
+    output reg mem_stall,
     input [31:0] debug_ex_instr,
     output reg [31:0] debug_mem_instr
     );
@@ -79,6 +80,7 @@ module pipe_ex_mem_reg(
             mem_csr_we <= 1'b0;
             mem_csr_data_out <= 32'h0;
 
+            mem_stall <= 1'b0;
             debug_mem_instr <= 32'h13;
         end else if (ex_mem_en) begin
             mem_rs1 <= ex_rs1;
@@ -101,6 +103,7 @@ module pipe_ex_mem_reg(
             mem_csr_we <= ex_csr_we;
             mem_csr_data_out <= ex_csr_data_out;
 
+            mem_stall <= ex_stall;
             debug_mem_instr <= debug_ex_instr;
         end
     end

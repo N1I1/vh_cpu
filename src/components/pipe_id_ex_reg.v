@@ -4,7 +4,6 @@ module pipe_id_ex_reg(
     input clk,
     input rst,
     input id_ex_en,
-    input id_ex_stall,
     input flush,
 
     input [`ARCH_WIDTH-1:0] id_reg_file_data_out1,
@@ -56,6 +55,8 @@ module pipe_id_ex_reg(
     output reg [11:0] ex_csr_addr,
     output reg [31:0] ex_csr_data_out,
 
+    input id_stall,
+    output reg ex_stall,
     input  [31:0] debug_id_instr,
     output reg [31:0] debug_ex_instr
     );
@@ -84,6 +85,7 @@ module pipe_id_ex_reg(
             ex_csr_addr <= 12'h0;
             ex_csr_data_out <= 32'h0;
 
+            ex_stall <= 1'h0;
             debug_ex_instr <= 32'h13;
         end else if (id_ex_en) begin
             ex_alu_a_src <= id_alu_a_src;
@@ -110,6 +112,7 @@ module pipe_id_ex_reg(
             ex_csr_addr <= id_csr_addr;
             ex_csr_data_out <= id_csr_data_out;
 
+            ex_stall <= id_stall;
             debug_ex_instr <= debug_id_instr;
         end
     end

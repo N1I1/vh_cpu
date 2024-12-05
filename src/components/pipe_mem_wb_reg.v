@@ -5,7 +5,6 @@ module pipe_mem_wb_reg(
     input rst,
     input flush,
     input mem_wb_en,
-    input mem_wb_stall,
 
     input [`DATA_WIDTH-1:0] mem_data_mem_out,
 
@@ -36,6 +35,8 @@ module pipe_mem_wb_reg(
     output reg wb_csr_we,
     output reg [31:0] wb_csr_data_out,
 
+    input mem_stall,
+    output reg wb_stall,
     input [31:0] debug_mem_instr,
     output reg [31:0] debug_wb_instr
 );
@@ -52,6 +53,7 @@ module pipe_mem_wb_reg(
             wb_csr_we <= 1'b0;
             wb_csr_data_out <= 32'h0;
             
+            wb_stall <= 1'b0;
             debug_wb_instr <= 32'h13;
         end else if (mem_wb_en) begin
             wb_rs1 <= mem_rs1;
@@ -65,6 +67,7 @@ module pipe_mem_wb_reg(
             wb_csr_we <= mem_csr_we;
             wb_csr_data_out <= mem_csr_data_out;
 
+            wb_stall <= mem_stall;
             debug_wb_instr <= debug_mem_instr;
         end
     end

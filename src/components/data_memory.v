@@ -12,10 +12,9 @@ module data_memory (
     );
     integer i;
 
-    reg [`DATA_WIDTH-1:0] ram [0:`DATA_MEM_SIZE-1];
+    reg [`DATA_WIDTH-1:0] ram [0:31];
 
     initial begin
-        $readmemh("assets/data_memory.hex", ram);
     end
 
     always @(posedge clk) begin

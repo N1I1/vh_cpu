@@ -38,16 +38,18 @@ instr_memory instr_memory0(
 
 wire [`INSTR_MEM_WIDTH-1:0] id_pc_out;
 wire [`INSTR_WIDTH-1:0] id_instr;
+wire id_stall;
 
 pipe_if_id_reg pipe_if_id_reg(
     .clk(clk),
     .rst(rst),
     .if_id_en(1'b1),
-    .if_id_stall(1'b0),
+    .if_stall(branch_taken),
     .if_instr(instr_memory_instr),
     .if_pc_out(pc_out),
     .id_pc_out(id_pc_out),
-    .id_instr(id_instr)
+    .id_instr(id_instr),
+    .id_stall(id_stall)
 );
 
 
@@ -172,11 +174,12 @@ wire [4:0] ex_reg_file_rd;
 wire [1:0] ex_reg_file_sel;
 wire [`ARCH_WIDTH-1:0] ex_pc_out;
 
+wire ex_stall;
+
 pipe_id_ex_reg pipe_id_ex_reg(
     .clk(clk),
     .rst(rst),
     .id_ex_en(1'b1),
-    .id_ex_stall(1'b0),
     .flush(1'b0),
 
     .id_reg_file_data_out1(reg_file_data_out1), // not for sure data or addr
@@ -233,6 +236,8 @@ pipe_id_ex_reg pipe_id_ex_reg(
     .ex_csr_we(ex_csr_we),
     .ex_csr_data_out(ex_csr_data_out),
 
+    .id_stall(id_stall),
+    .ex_stall(ex_stall),
     .debug_id_instr(id_instr),
     .debug_ex_instr(debug_ex_instr)
 );
@@ -301,12 +306,13 @@ wire [11:0] mem_csr_addr;
 wire mem_csr_we;
 wire [31:0] mem_csr_data_out;
 
+wire mem_stall;
+
 // need to modify the following
 pipe_ex_mem_reg pipe_ex_mem_reg(
     .clk(clk),
     .rst(rst),
     .ex_mem_en(1'b1),
-    .ex_mem_stall(1'b0),
     .flush(1'b0),
     
     // read from alu
@@ -356,6 +362,8 @@ pipe_ex_mem_reg pipe_ex_mem_reg(
     .mem_csr_we(mem_csr_we),
     .mem_csr_data_out(mem_csr_data_out),
 
+    .ex_stall(ex_stall),
+    .mem_stall(mem_stall),
     .debug_ex_instr(debug_ex_instr),
     .debug_mem_instr(debug_mem_instr)
 );
@@ -387,12 +395,13 @@ wire [2:0] wb_csr_src;
 wire [11:0] wb_csr_addr;
 wire wb_csr_we;
 wire [31:0] wb_csr_data_out;
+
+wire wb_stall;
 pipe_mem_wb_reg pipe_mem_wb_reg(
     .clk(clk),
     .rst(rst),
     .flush(1'b0),
     .mem_wb_en(1'b1),
-    .mem_wb_stall(1'b0),
 
     // read from data memory
     .mem_data_mem_out(data_memory_data_out),
@@ -426,6 +435,8 @@ pipe_mem_wb_reg pipe_mem_wb_reg(
     .wb_csr_we(wb_csr_we),
     .wb_csr_data_out(wb_csr_data_out),
 
+    .mem_stall(mem_stall),
+    .wb_stall(wb_stall),
     .debug_mem_instr(debug_mem_instr),
     .debug_wb_instr(debug_wb_instr)
 );
@@ -460,7 +471,8 @@ reg_file reg_file0(
     .data_out2(reg_file_data_out2),
 
     .instr(debug_wb_instr),
-    .pc_out(wb_pc_out)
+    .pc_out(wb_pc_out),
+    .wb_stall(wb_stall)
 );
 
 wire [`CSR_WIDTH-1:0] csr_data_out;
