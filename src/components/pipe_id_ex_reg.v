@@ -10,6 +10,7 @@ module pipe_id_ex_reg(
     input [`ARCH_WIDTH-1:0] id_reg_file_data_out2,
     input [4:0] id_rs1,
     input [4:0] id_rs2,
+    input rs2_use_imm,
     input [31:0] id_imm,
 
     input id_data_mem_we,
@@ -29,6 +30,7 @@ module pipe_id_ex_reg(
     input [`ALU_OP_WIDTH-1:0] id_alu_op,
     input [2:0] id_data_width,
 
+
     output reg [1:0] ex_alu_a_src,
     output reg [1:0] ex_alu_b_src,
     output reg ex_alu_b_neg,
@@ -39,6 +41,7 @@ module pipe_id_ex_reg(
     output reg [`ARCH_WIDTH-1:0] ex_reg_file_data_out2,
     output reg [4:0] ex_rs1,
     output reg [4:0] ex_rs2,
+    output reg ex_use_imm,
 
     output reg [4:0] ex_reg_file_rd,
     output reg ex_reg_file_we,
@@ -61,12 +64,13 @@ module pipe_id_ex_reg(
     output reg [31:0] debug_ex_instr
     );
     always @(posedge clk) begin
-        if (rst) begin
+        if (rst || id_stall) begin
             ex_alu_a_src <= 2'b0;
             ex_alu_b_src <= 2'b0;
             ex_alu_b_neg <= 1'b0;
             ex_alu_op <= `ALU_OP_WIDTH'h0;
             ex_data_width <= 3'b0;
+            ex_use_imm <= 1'b0;
             ex_imm <= 32'h0;
             ex_reg_file_data_out1 <= `ARCH_WIDTH'h0;
             ex_reg_file_data_out2 <= `ARCH_WIDTH'h0;
@@ -93,6 +97,7 @@ module pipe_id_ex_reg(
             ex_alu_b_neg <= id_alu_b_neg;
             ex_alu_op <= id_alu_op;
             ex_data_width <= id_data_width;
+            ex_use_imm <= rs2_use_imm;
             ex_imm <= id_imm;
             ex_reg_file_data_out1 <= id_reg_file_data_out1;
             ex_reg_file_data_out2 <= id_reg_file_data_out2;

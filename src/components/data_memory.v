@@ -15,14 +15,17 @@ module data_memory (
     reg [`DATA_WIDTH-1:0] ram [0:31];
 
     initial begin
+        ram[0] = 64'h1111111111111111;
+        ram[1] = 64'h2222222222222222;
+        ram[2] = 64'h3333333333333333;
+        ram[3] = 64'h4444444444444444;
+        ram[4] = 64'h5555555555555555;
+        ram[5] = 64'h6666666666666666;
+        ram[6] = 64'h7777777777777777;
     end
 
     always @(posedge clk) begin
-        if (rst)
-            for (i = 0; i < 1024; i = i + 1) begin
-                ram[i] = 0;
-            end
-        else if (we) begin
+        if (we) begin
             if (data_width == 0)
                 ram[addr] <= data_in[7:0];
             else if (data_width == 1)

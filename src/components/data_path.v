@@ -44,7 +44,8 @@ pipe_if_id_reg pipe_if_id_reg(
     .clk(clk),
     .rst(rst),
     .if_id_en(1'b1),
-    .if_stall(branch_taken),
+    .if_stall(stall),
+    .flush(branch_taken),
     .if_instr(instr_memory_instr),
     .if_pc_out(pc_out),
     .id_pc_out(id_pc_out),
@@ -52,6 +53,56 @@ pipe_if_id_reg pipe_if_id_reg(
     .id_stall(id_stall)
 );
 
+// for branch and jump forward unit
+wire [1:0] branch_forward_a;
+wire [1:0] branch_forward_b;
+reg jump, branch;
+always @(*) begin
+    if (branch_type == 0) begin
+        jump = 1'b0;
+        branch = 1'b0;
+    end else if (branch_type <= 2) begin
+        jump = 1'b1;
+        branch = 1'b0;
+    end else if (branch_type <= 8) begin
+        jump = 1'b0;
+        branch = 1'b1;
+    end else begin
+        jump = 1'b0;
+        branch = 1'b0;
+    end
+end
+
+forward forward(
+    .id_rs1(instr_decode_rs1),
+    .id_rs2(instr_decode_rs2),
+    .branch(NULL),
+    .jump(NULL),
+    .ex_mem_rd(mem_reg_file_rd),
+    .ex_mem_reg_we(mem_reg_file_we),
+    .mem_wb_rd(wb_reg_file_rd),
+    .mem_ex_reg_we(wb_reg_file_we),
+    .forward_a(branch_forward_a),
+    .forward_b(branch_forward_b)
+);
+
+wire stall;
+stall_unit stall_unit(
+    .id_rs1(instr_decode_rs1),
+    .id_rs2(instr_decode_rs2),
+    .use_imm(rs2_use_imm),
+    .branch(branch),
+    .jump(jump),
+    .ex_rd(ex_reg_file_rd),
+    .ex_reg_we(ex_reg_file_we),
+    .ex_mem_read(ex_data_mem_re),
+    .mem_rd(mem_reg_file_rd),
+    .mem_reg_we(mem_reg_file_we),
+    .mem_mem_read(mem_data_mem_re),
+    .wb_rd(wb_reg_file_rd),
+    .wb_reg_we(wb_reg_file_we),
+    .stall(stall)
+);
 
 /* ------------------- */
 /*         ID          */
@@ -68,6 +119,7 @@ wire [11:0] instr_decode_csr_addr;
 
 assign instr_decode_ext_imm = $signed(instr_decode_imm);
 
+wire rs2_use_imm;
 instr_decode instr_decode0(
     .ins(id_instr),
 
@@ -78,7 +130,8 @@ instr_decode instr_decode0(
     .rs2(instr_decode_rs2),
     .rd(instr_decode_rd),
     .imm(instr_decode_imm),
-    .csr_addr(instr_decode_csr_addr)
+    .csr_addr(instr_decode_csr_addr),
+    .rs2_use_imm(rs2_use_imm)
 );
 
 wire mem_read;
@@ -121,10 +174,30 @@ control_unit control_unit0(
 
 wire [`ARCH_WIDTH-1:0] branch_target;
 wire branch_taken;
+
+wire [`ARCH_WIDTH-1:0] branch_reg_file_data_out1;
+wire [`ARCH_WIDTH-1:0] branch_reg_file_data_out2;
+mux4_1 branch_rs1(
+    .sel(branch_forward_a),
+    .a(reg_file_data_out1),
+    .b(0),
+    .c(mem_alu_res),
+    .d(reg_file_data_in),
+    .out(branch_reg_file_data_out1)
+);
+mux4_1 branch_rs2(
+    .sel(branch_forward_b),
+    .a(reg_file_data_out1),
+    .b(0),
+    .c(mem_alu_res),
+    .d(reg_file_data_in),
+    .out(branch_reg_file_data_out2)
+);
+
 branch_cal_unit branch_cal_unit0(
     .id_pc_out(id_pc_out),
-    .reg_file_data_out1(reg_file_data_out1),
-    .reg_file_data_out2(reg_file_data_out2),
+    .reg_file_data_out1(branch_reg_file_data_out1),
+    .reg_file_data_out2(branch_reg_file_data_out2),
     .imm(instr_decode_imm),
     .branch_type(branch_type),
     .branch_target(branch_target),
@@ -137,6 +210,7 @@ pc pc0(
     .clk(clk),
     .rst(rst),
     
+    .stall(stall),
     .branch_taken(branch_taken),
     .branch_target(branch_target),
 
@@ -154,6 +228,7 @@ wire ex_alu_zero;
 
 wire [2:0] ex_data_mem_data_width;
 wire [`DATA_MEM_WIDTH-1:0] ex_data_addr;
+wire ex_use_imm;
 wire [31:0] ex_imm;
 wire [`ARCH_WIDTH-1:0] ex_reg_file_data_out1;
 wire [`ARCH_WIDTH-1:0] ex_reg_file_data_out2;
@@ -168,6 +243,7 @@ wire [2:0] ex_mem_data_width;
 wire ex_data_mem_we;
 wire ex_data_mem_re;
 wire [`DATA_WIDTH-1:0] ex_data_mem_in;
+assign ex_data_mem_in = reg_file_data_out2;
 
 wire ex_reg_file_we;
 wire [4:0] ex_reg_file_rd;
@@ -182,14 +258,15 @@ pipe_id_ex_reg pipe_id_ex_reg(
     .id_ex_en(1'b1),
     .flush(1'b0),
 
-    .id_reg_file_data_out1(reg_file_data_out1), // not for sure data or addr
+    .id_reg_file_data_out1(reg_file_data_out1),
     .id_reg_file_data_out2(reg_file_data_out2),
     .id_rs1(instr_decode_rs1),
     .id_rs2(instr_decode_rs2),
     .id_imm(instr_decode_imm),
+    .rs2_use_imm(rs2_use_imm),
 
-    .id_data_mem_we(mem_read),
-    .id_data_mem_re(mem_write),
+    .id_data_mem_we(mem_write),
+    .id_data_mem_re(mem_read),
     // .id_data_mem_in(id_ex_data_mem_in),
 
     .id_reg_file_rd(instr_decode_rd),
@@ -214,6 +291,7 @@ pipe_id_ex_reg pipe_id_ex_reg(
     .ex_alu_b_neg(ex_alu_b_neg),
     .ex_alu_op(ex_alu_op),
     .ex_data_width(ex_data_mem_data_width),
+    .ex_use_imm(ex_use_imm),
     .ex_imm(ex_imm),
     .ex_reg_file_data_out1(ex_reg_file_data_out1),
     .ex_reg_file_data_out2(ex_reg_file_data_out2),
@@ -236,7 +314,7 @@ pipe_id_ex_reg pipe_id_ex_reg(
     .ex_csr_we(ex_csr_we),
     .ex_csr_data_out(ex_csr_data_out),
 
-    .id_stall(id_stall),
+    .id_stall(stall),
     .ex_stall(ex_stall),
     .debug_id_instr(id_instr),
     .debug_ex_instr(debug_ex_instr)
@@ -246,9 +324,44 @@ pipe_id_ex_reg pipe_id_ex_reg(
 /*         EX          */
 /* ------------------- */
 
+wire [1:0] ex_forward_a;
+wire [1:0] ex_forward_b;
+
+forward_unit forward_unit(
+    .ex_rs1(ex_rs1),
+    .ex_rs2(ex_rs2),
+    .use_imm(ex_use_imm),
+    .mem_rd(mem_reg_file_rd),
+    .mem_reg_we(mem_reg_file_we),
+    .wb_rd(wb_reg_file_rd),
+    .wb_reg_we(wb_reg_file_we),
+    .forward_a(ex_forward_a),
+    .forward_b(ex_forward_b)
+);
+
+wire [`DATA_WIDTH-1:0] mux_alu_a;
+wire [`DATA_WIDTH-1:0] mux_alu_b;
 wire [`DATA_WIDTH-1:0] alu_a;
 wire [`DATA_WIDTH-1:0] alu_b;
 wire [`ALU_OP_WIDTH-1:0] alu_op;
+
+mux4_1 forward_a(
+    .sel(ex_forward_a),
+    .a(mux_alu_a),
+    .b(wb_data_mem_out),
+    .c(mem_alu_res),
+    .d(reg_file_data_in),
+    .out(alu_a)
+);
+
+mux4_1 forward_b(
+    .sel(ex_forward_b),
+    .a(mux_alu_b),
+    .b(wb_data_mem_out),
+    .c(mem_alu_res),
+    .d(reg_file_data_in),
+    .out(alu_b)
+);
 
 alu alu0(
     .a(alu_a),
@@ -260,13 +373,13 @@ alu alu0(
     .zero(ex_alu_zero)
 );
 
-mux4_1 mux_alu0_a(
+mux8_1 mux_alu0_a(
     .sel(ex_alu_a_src),
     .a(ex_reg_file_data_out1),
     .b(ex_pc_out),
     .c(ex_csr_data_out),
     .d(64'h0),
-    .out(alu_a)
+    .out(mux_alu_a)
 );
 
 wire [`ARCH_WIDTH-1:0] instr_decode_ext_imm;
@@ -280,7 +393,7 @@ mux4_1 mux_alu0_b(
     .c(ex_reg_file_data_out1),
     .d(zimm_alu_b),
     
-    .out(alu_b)
+    .out(mux_alu_b)
 );
 assign zimm_alu_b = ex_alu_b_neg? ~ex_rs1 : ex_rs1;
 
@@ -324,7 +437,7 @@ pipe_ex_mem_reg pipe_ex_mem_reg(
     .ex_rs2(ex_rs2),
     .ex_imm(ex_imm),
     .ex_data_width(ex_data_mem_data_width),
-    .ex_data_addr(ex_data_addr),
+    .ex_data_addr(ex_alu_res),
     .ex_data_we(ex_data_mem_we),
     .ex_data_re(ex_data_mem_re),
     .ex_data_in(ex_data_mem_in),

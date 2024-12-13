@@ -9,6 +9,7 @@ module instr_decode (
     output      [4:0]   rs2,
     output      [4:0]   rd,
     output      [31:0]  imm,
+    output              rs2_use_imm, // don't use rs2 but use imm
     output      [11:0]  csr_addr
 );
     
@@ -56,4 +57,5 @@ module instr_decode (
                  B_type ? B_imm :
                  S_type ? S_imm : 
                  SYSTEM_type ? SYSTEM_imm : 32'd0;
+    assign rs2_use_imm = I_type | U_type | S_type; // didn't consider SYSTEM_type
 endmodule

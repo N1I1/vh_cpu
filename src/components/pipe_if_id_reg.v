@@ -19,7 +19,7 @@ module pipe_if_id_reg(
         end else if (if_id_en) begin
             if (if_stall) begin
                 id_pc_out <= id_pc_out;
-                id_instr <= `INSTR_WIDTH'h13; // nop instr
+                id_instr <= id_instr;
                 id_stall <= if_stall;
             end else if (flush) begin
                 id_pc_out <= `ARCH_WIDTH'h0;
