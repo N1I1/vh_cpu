@@ -258,8 +258,8 @@ pipe_id_ex_reg pipe_id_ex_reg(
     .id_ex_en(1'b1),
     .flush(1'b0),
 
-    .id_reg_file_data_out1(reg_file_data_out1),
-    .id_reg_file_data_out2(reg_file_data_out2),
+    .id_reg_file_data_out1(branch_reg_file_data_out1),
+    .id_reg_file_data_out2(branch_reg_file_data_out2),
     .id_rs1(instr_decode_rs1),
     .id_rs2(instr_decode_rs2),
     .id_imm(instr_decode_imm),

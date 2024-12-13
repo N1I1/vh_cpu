@@ -18,8 +18,8 @@ module reg_file(
     integer i;
     reg [`ARCH_WIDTH-1:0]         regs [31:0];
 
-    assign data_out1 = rd && (rd == rs1) ? data_in : regs[rs1];
-    assign data_out2 = rd && (rd == rs2) ? data_in : regs[rs2];
+    assign data_out1 = regs[rs1];
+    assign data_out2 = regs[rs2];
 
     initial begin
         for (i = 0; i < 32; i = i + 1) begin

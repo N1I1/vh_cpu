@@ -22,20 +22,20 @@ module forward(
     always @(*) begin
         if(jump) begin
             if(id_rs1 && ex_mem_reg_we && ex_mem_rd == id_rs1) forward_a = 2'b10;
-            else if(id_rs1 && mem_ex_reg_we && mem_wb_rd == id_rs1) forward_a = 2'b10;
+            else if(id_rs1 && mem_ex_reg_we && mem_wb_rd == id_rs1) forward_a = 2'b11;
             else forward_a = 2'b00;
         end else if(branch) begin
             if(id_rs1 && ex_mem_reg_we && ex_mem_rd == id_rs1) forward_a = 2'b10;
-            else if(id_rs1 && mem_ex_reg_we && mem_wb_rd == id_rs1) forward_a = 2'b10;
+            else if(id_rs1 && mem_ex_reg_we && mem_wb_rd == id_rs1) forward_a = 2'b11;
             else if(id_rs2 && ex_mem_reg_we && ex_mem_rd == id_rs2) forward_b = 2'b10;
-            else if(id_rs2 && mem_ex_reg_we && mem_wb_rd == id_rs2) forward_b = 2'b10;
+            else if(id_rs2 && mem_ex_reg_we && mem_wb_rd == id_rs2) forward_b = 2'b11;
             else forward_a = 2'b00;
             forward_b = 2'b00;
         end else begin
             if(id_rs1 && ex_mem_reg_we && ex_mem_rd == id_rs1) forward_a = 2'b10;
-            else if(id_rs1 && mem_ex_reg_we && mem_wb_rd == id_rs1) forward_a = 2'b10;
+            else if(id_rs1 && mem_ex_reg_we && mem_wb_rd == id_rs1) forward_a = 2'b11;
             else if(id_rs2 && ex_mem_reg_we && ex_mem_rd == id_rs2) forward_b = 2'b10;
-            else if(id_rs2 && mem_ex_reg_we && mem_wb_rd == id_rs2) forward_b = 2'b10;
+            else if(id_rs2 && mem_ex_reg_we && mem_wb_rd == id_rs2) forward_b = 2'b11;
             else forward_a = 2'b00;
             forward_b = 2'b00;
         end
