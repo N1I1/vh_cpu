@@ -64,7 +64,7 @@ module pipe_id_ex_reg(
     output reg [31:0] debug_ex_instr
     );
     always @(posedge clk) begin
-        if (rst || id_stall) begin
+        if (rst | id_stall|flush) begin
             ex_alu_a_src <= 2'b0;
             ex_alu_b_src <= 2'b0;
             ex_alu_b_neg <= 1'b0;
@@ -89,7 +89,7 @@ module pipe_id_ex_reg(
             ex_csr_addr <= 12'h0;
             ex_csr_data_out <= 32'h0;
 
-            ex_stall <= 1'h0;
+            ex_stall <= 1'h1;
             debug_ex_instr <= 32'h13;
         end else if (id_ex_en) begin
             ex_alu_a_src <= id_alu_a_src;
@@ -117,7 +117,7 @@ module pipe_id_ex_reg(
             ex_csr_addr <= id_csr_addr;
             ex_csr_data_out <= id_csr_data_out;
 
-            ex_stall <= id_stall;
+            ex_stall <= flush | id_stall;
             debug_ex_instr <= debug_id_instr;
         end
     end

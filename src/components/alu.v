@@ -59,24 +59,7 @@ module alu(
     end
 
     always @(*) begin
-        case (data_width)
-            `DATA_WIDTH_8: begin
-                res = alu_res_temp[7:0];
-            end
-            `DATA_WIDTH_16: begin
-                res = alu_res_temp[15:0];
-            end
-            `DATA_WIDTH_32: begin
-                res = alu_res_temp[31:0];
-            end
-            `DATA_WIDTH_64: begin
-                res = alu_res_temp[63:0];
-            end
-            default: begin
-                $display("Invalid data width: %b", data_width);
-                res = 0;
-            end
-        endcase
+        res = alu_res_temp;
     end
 
     assign zero = (res == 0);

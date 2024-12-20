@@ -7,15 +7,15 @@ module instr_memory(
     output  wire     [`INSTR_WIDTH-1:0]      instr
 );
 
-    reg [`INSTR_WIDTH-1:0] instr_mem[0:`INSTR_MEM_SIZE-1];
+    reg [`INSTR_WIDTH-1:0] instr_mem[0:100];
 
     initial begin
-        // $readmemh("assets/instr_memory.hex", instr_mem);
-        instr_mem[0] = 32'h0x00003083; // ld x1, 0(x0)
+        $readmemh("assets/instr.hex", instr_mem);
+        // instr_mem[0] = 32'h0x20003083; // ld x1, 0(x0)
         // instr_mem[0] = 32'h0x00108093; // addi x1, x1, 0x1
-        instr_mem[1] = 32'h0x00108093; // addi x1, x1, 0x1
-        instr_mem[2] = 32'h0x00000067; // j 0
-        instr_mem[3] = 32'h0x00000013; // nop
+        // instr_mem[1] = 32'h0x00108093; // addi x1, x1, 0x1
+        // instr_mem[1] = 32'h0x00008067; // j 0
+        // instr_mem[3] = 32'h0x00000013; // nop
         // ram[7] = 32'h
         // ram[8] = 32'h
         // ram[9] = 32'h

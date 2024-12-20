@@ -10,45 +10,63 @@ module data_memory (
     input   wire    [`DATA_WIDTH-1:0]       data_in,
     output  reg     [`DATA_WIDTH-1:0]       data_out
     );
+    
+    // Parameters for data width
+    localparam BYTE = 3'b000;
+    localparam HALF = 3'b001;
+    localparam WORD = 3'b010;
+    localparam DWORD = 3'b011;
+    
     integer i;
+    reg [7:0] ram [0:1024];
 
-    reg [`DATA_WIDTH-1:0] ram [0:31];
-
-    initial begin
-        ram[0] = 64'h1111111111111111;
-        ram[1] = 64'h2222222222222222;
-        ram[2] = 64'h3333333333333333;
-        ram[3] = 64'h4444444444444444;
-        ram[4] = 64'h5555555555555555;
-        ram[5] = 64'h6666666666666666;
-        ram[6] = 64'h7777777777777777;
+    always @(posedge clk) begin
+        if (rst) begin
+            for (i = 0; i < 1024; i = i + 1)
+                ram[i] <= 8'h0;
+        end
     end
 
     always @(posedge clk) begin
-        if (we) begin
-            if (data_width == 0)
-                ram[addr] <= data_in[7:0];
-            else if (data_width == 1)
-                ram[addr] <= data_in[15:0];
-            else if (data_width == 2)
-                ram[addr] <= data_in[31:0];
-            else if (data_width == 3)
-                ram[addr] <= data_in;
+        if (!rst && we) begin
+            case (data_width)
+                BYTE: ram[addr] <= data_in[7:0];
+                HALF: begin
+                    ram[addr]   <= data_in[7:0];
+                    ram[addr+1] <= data_in[15:8];
+                end
+                WORD: begin
+                    ram[addr]   <= data_in[7:0];
+                    ram[addr+1] <= data_in[15:8];
+                    ram[addr+2] <= data_in[23:16];
+                    ram[addr+3] <= data_in[31:24];
+                end
+                DWORD: begin
+                    ram[addr]   <= data_in[7:0];
+                    ram[addr+1] <= data_in[15:8];
+                    ram[addr+2] <= data_in[23:16];
+                    ram[addr+3] <= data_in[31:24];
+                    ram[addr+4] <= data_in[39:32];
+                    ram[addr+5] <= data_in[47:40];
+                    ram[addr+6] <= data_in[55:48];
+                    ram[addr+7] <= data_in[63:56];
+                end
+            endcase
         end
     end
-    
+
     always @(*) begin
-        if (re) begin
-            if (data_width == 0)
-                data_out <= ram[addr][7:0];
-            else if (data_width == 1)
-                data_out <= ram[addr][15:0];
-            else if (data_width == 2)
-                data_out <= ram[addr][31:0];
-            else if (data_width == 3)
-                data_out <= ram[addr][63:0];
-            else
-                data_out <= 0;
-        end else data_out <= 0;
+        if (!rst && re) begin
+            case (data_width)
+                BYTE:   data_out = {56'h0, ram[addr]};
+                HALF:   data_out = {48'h0, ram[addr+1], ram[addr]};
+                WORD:   data_out = {32'h0, ram[addr+3], ram[addr+2], ram[addr+1], ram[addr]};
+                DWORD:  data_out = {ram[addr+7], ram[addr+6], ram[addr+5], ram[addr+4], 
+                                  ram[addr+3], ram[addr+2], ram[addr+1], ram[addr]};
+                default: data_out = 64'h0;
+            endcase
+        end else begin
+            data_out = 64'h0;
+        end
     end
 endmodule

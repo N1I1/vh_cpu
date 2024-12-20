@@ -287,6 +287,7 @@ module control_unit (
                 alu_a_src   = 2'b00;
                 alu_b_src   = 2'b01;
                 alu_b_neg   = 1'b0;
+                alu_op      = `ALU_ADD;
                 branch_type = 4'b0000;
                 csr_src     = 3'b000;
                 csr_we      = 1'b0;

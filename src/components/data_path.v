@@ -39,18 +39,20 @@ instr_memory instr_memory0(
 wire [`INSTR_MEM_WIDTH-1:0] id_pc_out;
 wire [`INSTR_WIDTH-1:0] id_instr;
 wire id_stall;
+wire id_flush;
 
 pipe_if_id_reg pipe_if_id_reg(
     .clk(clk),
     .rst(rst),
     .if_id_en(1'b1),
     .if_stall(stall),
-    .flush(branch_taken),
+    .flush(branch_taken && (npc_predicted != branch_target[9:0])),
     .if_instr(instr_memory_instr),
     .if_pc_out(pc_out),
     .id_pc_out(id_pc_out),
     .id_instr(id_instr),
-    .id_stall(id_stall)
+    .id_stall(id_stall),
+    .id_flush(id_flush)
 );
 
 // for branch and jump forward unit
@@ -73,11 +75,25 @@ always @(*) begin
     end
 end
 
+wire [1:0] prediction;
+wire [9:0] npc_predicted;
+bht_btb bht_btb0(
+    .clk(clk),
+    .rst(rst),
+    .enable(branch | jump),
+    .branch_taken(branch_taken),
+    .branch_pc(id_pc_out),
+    .target_addr(branch_target),
+    .cur_pc(pc_out),
+    .prediction(prediction),
+    .addr_predicted(npc_predicted)
+);
+
 forward forward(
     .id_rs1(instr_decode_rs1),
     .id_rs2(instr_decode_rs2),
-    .branch(NULL),
-    .jump(NULL),
+    .branch(branch),
+    .jump(jump),
     .ex_mem_rd(mem_reg_file_rd),
     .ex_mem_reg_we(mem_reg_file_we),
     .mem_wb_rd(wb_reg_file_rd),
@@ -187,7 +203,7 @@ mux4_1 branch_rs1(
 );
 mux4_1 branch_rs2(
     .sel(branch_forward_b),
-    .a(reg_file_data_out1),
+    .a(reg_file_data_out2),
     .b(0),
     .c(mem_alu_res),
     .d(reg_file_data_in),
@@ -213,6 +229,8 @@ pc pc0(
     .stall(stall),
     .branch_taken(branch_taken),
     .branch_target(branch_target),
+    .prediction(prediction),
+    .addr_predicted({pc_out[63:10], npc_predicted}),
 
     .pc_out(pc_out)
 );
@@ -243,7 +261,6 @@ wire [2:0] ex_mem_data_width;
 wire ex_data_mem_we;
 wire ex_data_mem_re;
 wire [`DATA_WIDTH-1:0] ex_data_mem_in;
-assign ex_data_mem_in = reg_file_data_out2;
 
 wire ex_reg_file_we;
 wire [4:0] ex_reg_file_rd;
@@ -256,7 +273,7 @@ pipe_id_ex_reg pipe_id_ex_reg(
     .clk(clk),
     .rst(rst),
     .id_ex_en(1'b1),
-    .flush(1'b0),
+    .flush(id_flush), // just for debug now need to rafactor
 
     .id_reg_file_data_out1(branch_reg_file_data_out1),
     .id_reg_file_data_out2(branch_reg_file_data_out2),
